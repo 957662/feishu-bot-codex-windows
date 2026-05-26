@@ -42,11 +42,18 @@ async def _run_daemon() -> None:
     orchestrator = Orchestrator(
         store=store,
         tmux_factory=lambda name: RealTmux(),
-        lark_factory=lambda cfg: RealLarkCli(),
+        # Use the binding name as the lark-cli profile, so each binding talks
+        # to its OWN Feishu app's event stream. Without --profile, lark-cli
+        # uses its global default — which may be the WRONG app (e.g. another
+        # binding's profile), silently swallowing all inbound events.
+        lark_factory=lambda cfg: RealLarkCli(profile=cfg.name),
         data_dir=data_dir,
     )
 
     keychain = MacOSKeychainStore()
+    # The "bare" RealLarkCli used for unscoped operations (auth bot-new,
+    # menu push) doesn't pin a profile — those calls happen during binding
+    # creation, before a per-binding profile is fully set up.
     real_lark = RealLarkCli()
 
     server = await serve(

@@ -154,10 +154,17 @@ class RealLarkCli(LarkCli):
     runs a fresh subprocess.
     """
 
-    def __init__(self, binary: str = "lark-cli", as_bot: bool = True, extra_env: dict[str, str] | None = None) -> None:
+    def __init__(
+        self,
+        binary: str = "lark-cli",
+        as_bot: bool = True,
+        extra_env: dict[str, str] | None = None,
+        profile: str | None = None,
+    ) -> None:
         self._binary = binary
         self._as_bot = as_bot
         self._extra_env = dict(extra_env or {})
+        self._profile = profile
 
     async def _run_raw(self, args: list[str], timeout: float = 30.0) -> tuple[str, int]:
         """Run `lark-cli <args>`. Return (combined stdout+stderr, returncode).
@@ -187,7 +194,20 @@ class RealLarkCli(LarkCli):
         return combined, proc.returncode
 
     def _common_args(self) -> list[str]:
-        return ["--as", "bot"] if self._as_bot else []
+        """Args injected into every lark-cli invocation.
+
+        --profile <name> is critical when multiple lark-cli profiles exist on
+        the same machine (e.g. running both feishu-bot-claude and
+        feishu-bot-codex side by side, each with its own Feishu app). Without
+        it, lark-cli picks the global default — which may be the WRONG
+        profile, silently routing events to a different daemon's inbound.
+        """
+        args: list[str] = []
+        if self._profile:
+            args += ["--profile", self._profile]
+        if self._as_bot:
+            args += ["--as", "bot"]
+        return args
 
     def _extract_message_id(self, out: str) -> str:
         """lark-cli emits a (possibly pretty-printed) JSON object on stdout.
