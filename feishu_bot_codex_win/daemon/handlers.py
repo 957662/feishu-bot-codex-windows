@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from typing import AsyncIterator
 
-from feishu_bot_codex.proto import DoneEvent, ResponseEvent, ResultEvent
+from feishu_bot_codex_win.proto import DoneEvent, ResponseEvent, ResultEvent
 
 
 async def handle_ping(args: dict) -> AsyncIterator[ResponseEvent]:
@@ -13,7 +13,7 @@ async def handle_ping(args: dict) -> AsyncIterator[ResponseEvent]:
     yield DoneEvent()
 
 
-from feishu_bot_codex.config.binding import BindingStore
+from feishu_bot_codex_win.config.binding import BindingStore
 
 
 def _binding_summary(b) -> dict:
@@ -35,7 +35,7 @@ async def handle_list(args: dict, store: BindingStore) -> AsyncIterator[Response
 
 import time
 
-import feishu_bot_codex
+import feishu_bot_codex_win
 
 _DAEMON_START_TIME = time.time()
 
@@ -79,7 +79,7 @@ async def handle_status(args: dict) -> AsyncIterator[ResponseEvent]:
     yield ResultEvent(
         ok=True,
         data={
-            "version": feishu_bot_codex.__version__,
+            "version": feishu_bot_codex_win.__version__,
             "uptime_seconds": int(time.time() - _DAEMON_START_TIME),
         },
         error=None,
@@ -89,7 +89,7 @@ async def handle_status(args: dict) -> AsyncIterator[ResponseEvent]:
 
 from pathlib import Path
 
-from feishu_bot_codex.daemon.orchestrator import Orchestrator
+from feishu_bot_codex_win.daemon.orchestrator import Orchestrator
 
 
 async def handle_start_with_orchestrator(args: dict, orchestrator: Orchestrator) -> AsyncIterator[ResponseEvent]:
@@ -131,12 +131,12 @@ async def handle_stop_with_orchestrator(args: dict, orchestrator: Orchestrator) 
 
 from datetime import datetime, timezone
 
-from feishu_bot_codex.config.binding import BindingConfig
-from feishu_bot_codex.config.keychain import KeychainStore
-from feishu_bot_codex.daemon.auth import bot_new
-from feishu_bot_codex.daemon.menu import push_menu_with_fallback
-from feishu_bot_codex.menu_template import build_menu_json
-from feishu_bot_codex.proto import LogEvent, ProgressEvent, QRCodeEvent
+from feishu_bot_codex_win.config.binding import BindingConfig
+from feishu_bot_codex_win.config.keychain import KeychainStore
+from feishu_bot_codex_win.daemon.auth import bot_new
+from feishu_bot_codex_win.daemon.menu import push_menu_with_fallback
+from feishu_bot_codex_win.menu_template import build_menu_json
+from feishu_bot_codex_win.proto import LogEvent, ProgressEvent, QRCodeEvent
 
 
 def _extract_app_id_from_larkcli(profile_name: str) -> str | None:
@@ -228,7 +228,7 @@ async def handle_bind_with_orchestrator(
     async def background_finish() -> None:
         from pathlib import Path
         import logging
-        log = logging.getLogger("feishu_bot_codex.bind")
+        log = logging.getLogger("feishu_bot_codex_win.bind")
         try:
             try:
                 await bot_new(runner=auth_runner_factory(name), on_event=on_auth_event)
@@ -246,7 +246,7 @@ async def handle_bind_with_orchestrator(
                     name,
                 )
                 return
-            secret_ref = f"feishu-bot-codex.{name}.app_secret"
+            secret_ref = f"feishu-bot-codex-win.{name}.app_secret"
             try:
                 keychain.put(secret_ref, "")  # lark-cli manages real secret
             except Exception:

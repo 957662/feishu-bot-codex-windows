@@ -1,49 +1,53 @@
-"""End-to-end: spawn daemon subprocess, run CLI against it, verify ping succeeds."""
+"""End-to-end: spawn daemon subprocess on TCP loopback, run CLI against it.
+
+The daemon writes its bound port to <data_dir>/control.port. The CLI reads
+that file to discover the daemon. Both pieces are driven by the
+FEISHU_BOT_CLAUDE_DATA_DIR env var.
+"""
 
 import asyncio
 import os
 import subprocess
 import sys
-import tempfile
 import time
-import uuid
 from pathlib import Path
 
 import pytest
 
 
-@pytest.mark.asyncio
-async def test_daemon_subprocess_responds_to_cli(tmp_path):
-    # Use short /tmp path due to macOS AF_UNIX 104-char limit
-    socket_path = Path(tempfile.gettempdir()) / f"fbc-{uuid.uuid4().hex[:8]}.sock"
-    bindings_path = tmp_path / "bindings.toml"
+def _wait_for_port_file(port_file: Path, timeout: float = 5.0) -> None:
+    """Poll until the daemon publishes its control.port file."""
+    deadline = time.time() + timeout
+    while time.time() < deadline:
+        if port_file.exists() and port_file.read_text().strip():
+            return
+        time.sleep(0.05)
+    raise AssertionError(f"daemon did not write {port_file} within {timeout}s")
 
+
+def _spawn_daemon(data_dir: Path, bindings_path: Path) -> tuple[subprocess.Popen, dict]:
     env = os.environ.copy()
-    env["FEISHU_BOT_CLAUDE_SOCKET"] = str(socket_path)
+    env["FEISHU_BOT_CLAUDE_DATA_DIR"] = str(data_dir)
     env["FEISHU_BOT_CLAUDE_BINDINGS"] = str(bindings_path)
-
-    daemon = subprocess.Popen(
-        [sys.executable, "-m", "feishu_bot_codex", "daemon"],
+    proc = subprocess.Popen(
+        [sys.executable, "-m", "feishu_bot_codex_win", "daemon"],
         env=env,
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE,
     )
-    try:
-        # Wait up to 3s for the socket to appear
-        deadline = time.time() + 3
-        while time.time() < deadline:
-            if socket_path.exists():
-                break
-            await asyncio.sleep(0.05)
-        assert socket_path.exists(), "daemon failed to create socket within 3s"
+    return proc, env
 
-        # Run the CLI ping
+
+@pytest.mark.asyncio
+async def test_daemon_subprocess_responds_to_cli(tmp_path):
+    bindings_path = tmp_path / "bindings.toml"
+    port_file = tmp_path / "control.port"
+    daemon, env = _spawn_daemon(tmp_path, bindings_path)
+    try:
+        _wait_for_port_file(port_file)
         result = subprocess.run(
-            [sys.executable, "-m", "feishu_bot_codex", "--socket", str(socket_path), "ping"],
-            capture_output=True,
-            text=True,
-            env=env,
-            timeout=5,
+            [sys.executable, "-m", "feishu_bot_codex_win", "--data-dir", str(tmp_path), "ping"],
+            capture_output=True, text=True, env=env, timeout=5,
         )
         assert result.returncode == 0, f"stderr: {result.stderr}\nstdout: {result.stdout}"
         assert "pong" in result.stdout.lower() or "OK" in result.stdout
@@ -53,33 +57,18 @@ async def test_daemon_subprocess_responds_to_cli(tmp_path):
             daemon.wait(timeout=2)
         except subprocess.TimeoutExpired:
             daemon.kill()
-        socket_path.unlink(missing_ok=True)
 
 
 @pytest.mark.asyncio
 async def test_daemon_list_empty(tmp_path):
     """A fresh daemon with no bindings returns an empty list."""
-    socket_path = Path(tempfile.gettempdir()) / f"fbc-{uuid.uuid4().hex[:8]}.sock"
     bindings_path = tmp_path / "bindings.toml"
-
-    env = os.environ.copy()
-    env["FEISHU_BOT_CLAUDE_SOCKET"] = str(socket_path)
-    env["FEISHU_BOT_CLAUDE_BINDINGS"] = str(bindings_path)
-
-    daemon = subprocess.Popen(
-        [sys.executable, "-m", "feishu_bot_codex", "daemon"],
-        env=env,
-        stdout=subprocess.PIPE,
-        stderr=subprocess.PIPE,
-    )
+    port_file = tmp_path / "control.port"
+    daemon, env = _spawn_daemon(tmp_path, bindings_path)
     try:
-        deadline = time.time() + 3
-        while time.time() < deadline and not socket_path.exists():
-            await asyncio.sleep(0.05)
-        assert socket_path.exists()
-
+        _wait_for_port_file(port_file)
         result = subprocess.run(
-            [sys.executable, "-m", "feishu_bot_codex", "--socket", str(socket_path), "list"],
+            [sys.executable, "-m", "feishu_bot_codex_win", "--data-dir", str(tmp_path), "list"],
             capture_output=True, text=True, env=env, timeout=5,
         )
         assert result.returncode == 0, f"stderr: {result.stderr}"
@@ -91,4 +80,3 @@ async def test_daemon_list_empty(tmp_path):
             daemon.wait(timeout=2)
         except subprocess.TimeoutExpired:
             daemon.kill()
-        socket_path.unlink(missing_ok=True)

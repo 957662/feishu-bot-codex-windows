@@ -4,7 +4,7 @@ import json
 
 import pytest
 
-from feishu_bot_codex.daemon.menu import MenuPushResult, push_menu_with_fallback
+from feishu_bot_codex_win.daemon.menu import MenuPushResult, push_menu_with_fallback
 
 
 class FakeLarkMenu:

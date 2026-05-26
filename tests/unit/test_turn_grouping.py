@@ -4,7 +4,7 @@ import json
 
 import pytest
 
-from feishu_bot_codex.rendering.turn import JsonlEvent, Turn, group_into_turns
+from feishu_bot_codex_win.rendering.turn import JsonlEvent, Turn, group_into_turns
 
 
 def _evt(role: str, **extra) -> dict:

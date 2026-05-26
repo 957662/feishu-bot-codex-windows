@@ -2,9 +2,9 @@
 
 import pytest
 
-from feishu_bot_codex.daemon.feishu import FakeLarkCli
-from feishu_bot_codex.daemon.inbound import InboundPipeline, DEFAULT_CONFIRM_MAP
-from feishu_bot_codex.daemon.tmux import FakeTmux
+from feishu_bot_codex_win.daemon.feishu import FakeLarkCli
+from feishu_bot_codex_win.daemon.inbound import InboundPipeline, DEFAULT_CONFIRM_MAP
+from feishu_bot_codex_win.daemon.zellij import FakeTmux
 
 
 def _menu_event(event_key, sender_id="ou_user"):

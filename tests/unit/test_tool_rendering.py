@@ -1,6 +1,6 @@
 """Tests for per-tool block rendering."""
 
-from feishu_bot_codex.rendering.tools import (
+from feishu_bot_codex_win.rendering.tools import (
     TOOL_ICONS,
     render_tool_block,
     summarize_tool_result,

@@ -11,8 +11,9 @@ import time
 from collections import OrderedDict
 from pathlib import Path
 
-from feishu_bot_codex.daemon.feishu import LarkCli
-from feishu_bot_codex.daemon.tmux import Tmux
+from feishu_bot_codex_win.daemon.feishu import LarkCli
+from feishu_bot_codex_win.daemon.zellij import SessionMux as Tmux  # noqa: F401
+from feishu_bot_codex_win.daemon.zellij import Tmux
 
 logger = logging.getLogger(__name__)
 
@@ -239,11 +240,11 @@ class InboundPipeline:
         return None
 
     async def _download_image(self, message_id: str, image_key: str) -> str | None:
-        """Download one image to ~/.feishu-bot-codex/inbox/. Returns abs path or None."""
+        """Download one image to ~/.feishu-bot-codex-win/inbox/. Returns abs path or None."""
         if not message_id or not image_key:
             return None
         # Stash images per-binding so two bindings don't trample each other.
-        inbox = Path.home() / ".feishu-bot-codex" / "inbox" / self._tmux_session
+        inbox = Path.home() / ".feishu-bot-codex-win" / "inbox" / self._tmux_session
         inbox.mkdir(parents=True, exist_ok=True)
         out_path = inbox / f"{int(time.time())}-{image_key}.png"
         try:

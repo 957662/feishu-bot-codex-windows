@@ -2,7 +2,7 @@
 
 import pytest
 
-from feishu_bot_codex.daemon.dispatcher import Dispatcher
+from feishu_bot_codex_win.daemon.dispatcher import Dispatcher
 
 
 async def _example_handler(args):

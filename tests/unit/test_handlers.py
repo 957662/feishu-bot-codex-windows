@@ -2,8 +2,8 @@
 
 import pytest
 
-from feishu_bot_codex.daemon.handlers import handle_ping
-from feishu_bot_codex.proto import DoneEvent, ResultEvent
+from feishu_bot_codex_win.daemon.handlers import handle_ping
+from feishu_bot_codex_win.proto import DoneEvent, ResultEvent
 
 
 @pytest.mark.asyncio
@@ -21,8 +21,8 @@ async def test_ping_emits_result_then_done():
 from datetime import datetime, timezone
 from pathlib import Path
 
-from feishu_bot_codex.config.binding import BindingConfig, BindingStore
-from feishu_bot_codex.daemon.handlers import handle_list
+from feishu_bot_codex_win.config.binding import BindingConfig, BindingStore
+from feishu_bot_codex_win.daemon.handlers import handle_list
 
 
 def _example_config(name="foo-bot", project_dir="/abs/foo") -> BindingConfig:
@@ -62,7 +62,7 @@ async def test_list_empty_store(tmp_path):
     assert events[0].data == {"bindings": []}
 
 
-from feishu_bot_codex.daemon.handlers import (
+from feishu_bot_codex_win.daemon.handlers import (
     handle_bind,
     handle_unbind,
     handle_start,
@@ -96,13 +96,13 @@ async def test_status_returns_daemon_info():
     assert events[-1] == DoneEvent()
 
 
-from feishu_bot_codex.daemon.handlers import (
+from feishu_bot_codex_win.daemon.handlers import (
     handle_start_with_orchestrator,
     handle_stop_with_orchestrator,
 )
-from feishu_bot_codex.daemon.orchestrator import Orchestrator
-from feishu_bot_codex.daemon.tmux import FakeTmux
-from feishu_bot_codex.daemon.feishu import FakeLarkCli
+from feishu_bot_codex_win.daemon.orchestrator import Orchestrator
+from feishu_bot_codex_win.daemon.zellij import FakeTmux
+from feishu_bot_codex_win.daemon.feishu import FakeLarkCli
 
 
 @pytest.mark.asyncio
@@ -153,11 +153,11 @@ async def test_handle_start_unknown_cwd_fails(tmp_path):
     assert "no binding" in events[0].error.lower()
 
 
-from feishu_bot_codex.daemon.handlers import (
+from feishu_bot_codex_win.daemon.handlers import (
     handle_bind_with_orchestrator,
     handle_unbind_with_orchestrator,
 )
-from feishu_bot_codex.config.keychain import InMemoryKeychainStore
+from feishu_bot_codex_win.config.keychain import InMemoryKeychainStore
 
 
 async def _fake_auth_runner(name):
@@ -175,7 +175,7 @@ async def _fake_auth_runner(name):
 @pytest.mark.asyncio
 async def test_handle_bind_creates_binding(tmp_path, monkeypatch):
     import asyncio
-    from feishu_bot_codex.daemon import handlers as handlers_module
+    from feishu_bot_codex_win.daemon import handlers as handlers_module
     # In test env, lark-cli isn't really invoked — stub the extractor.
     monkeypatch.setattr(handlers_module, "_extract_app_id_from_larkcli", lambda n: f"cli_test_{n}")
 

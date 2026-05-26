@@ -5,7 +5,7 @@ from pathlib import Path
 
 import pytest
 
-from feishu_bot_codex.rendering.turn import JsonlEvent, group_into_turns, render_turn_to_card
+from feishu_bot_codex_win.rendering.turn import JsonlEvent, group_into_turns, render_turn_to_card
 
 FIXTURES_DIR = Path(__file__).parent / "fixtures"
 EXPECTED_DIR = Path(__file__).parent / "expected"

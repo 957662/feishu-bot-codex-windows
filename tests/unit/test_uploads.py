@@ -2,7 +2,7 @@
 
 import pytest
 
-from feishu_bot_codex.rendering.uploads import LongOutputPolicy, UploadDecision
+from feishu_bot_codex_win.rendering.uploads import LongOutputPolicy, UploadDecision
 
 
 def test_short_output_inlines():

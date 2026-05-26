@@ -6,10 +6,10 @@ from pathlib import Path
 
 import pytest
 
-from feishu_bot_codex.daemon.feishu import FakeLarkCli
-from feishu_bot_codex.daemon.outbound import OutboundPipeline
-from feishu_bot_codex.daemon.ratelimit import TokenBucket
-from feishu_bot_codex.daemon.state import BindingRuntimeState
+from feishu_bot_codex_win.daemon.feishu import FakeLarkCli
+from feishu_bot_codex_win.daemon.outbound import OutboundPipeline
+from feishu_bot_codex_win.daemon.ratelimit import TokenBucket
+from feishu_bot_codex_win.daemon.state import BindingRuntimeState
 
 
 def _append_event(path: Path, event: dict) -> None:

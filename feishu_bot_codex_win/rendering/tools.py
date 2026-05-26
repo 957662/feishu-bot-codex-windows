@@ -5,7 +5,7 @@ from __future__ import annotations
 from pathlib import Path
 from typing import Literal
 
-from feishu_bot_codex.rendering.card import build_collapsible
+from feishu_bot_codex_win.rendering.card import build_collapsible
 
 
 RenderStyle = Literal["minimal", "full", "rich"]

@@ -227,7 +227,7 @@ class RealLarkCli(LarkCli):
 
         --profile <name> is critical when multiple lark-cli profiles exist on
         the same machine (e.g. running both feishu-bot-claude and
-        feishu-bot-codex side by side, each with its own Feishu app). Without
+        feishu-bot-codex-win side by side, each with its own Feishu app). Without
         it, lark-cli picks the global default — which may be the WRONG
         profile, silently routing events to a different daemon's inbound.
         """

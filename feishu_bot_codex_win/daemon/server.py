@@ -1,16 +1,25 @@
-"""Asyncio Unix-socket server. One Request → many ResponseEvents → DoneEvent → close."""
+"""Asyncio TCP-loopback server (Windows-native).
+
+Listens on 127.0.0.1:<ephemeral>; the chosen port is written to
+data_dir/control.port so the CLI can discover it. One Request →
+many ResponseEvents → DoneEvent → close (same protocol as the macOS edition).
+
+Security model: bind to 127.0.0.1 only (no external access). Windows enforces
+loopback-only at the network stack; per-user isolation on multi-user hosts is
+NOT provided — if you share a workstation with another local user, switch to
+Named Pipes with explicit ACLs.
+"""
 
 from __future__ import annotations
 
 import asyncio
 import json
 import logging
-import os
 from pathlib import Path
 
-from feishu_bot_codex.config.binding import BindingStore
-from feishu_bot_codex.daemon.dispatcher import Dispatcher
-from feishu_bot_codex.daemon.handlers import (
+from feishu_bot_codex_win.config.binding import BindingStore
+from feishu_bot_codex_win.daemon.dispatcher import Dispatcher
+from feishu_bot_codex_win.daemon.handlers import (
     handle_bind,
     handle_config,
     handle_list,
@@ -21,7 +30,7 @@ from feishu_bot_codex.daemon.handlers import (
     handle_stop,
     handle_unbind,
 )
-from feishu_bot_codex.proto import DoneEvent, Request, ResultEvent
+from feishu_bot_codex_win.proto import DoneEvent, Request, ResultEvent
 
 logger = logging.getLogger(__name__)
 
@@ -45,11 +54,11 @@ def _build_dispatcher(
 
     if orchestrator is not None:
         async def _start_with_orch(args):
-            from feishu_bot_codex.daemon.handlers import handle_start_with_orchestrator
+            from feishu_bot_codex_win.daemon.handlers import handle_start_with_orchestrator
             async for ev in handle_start_with_orchestrator(args, orchestrator=orchestrator):
                 yield ev
         async def _stop_with_orch(args):
-            from feishu_bot_codex.daemon.handlers import handle_stop_with_orchestrator
+            from feishu_bot_codex_win.daemon.handlers import handle_stop_with_orchestrator
             async for ev in handle_stop_with_orchestrator(args, orchestrator=orchestrator):
                 yield ev
         d.register("start", _start_with_orch)
@@ -60,7 +69,7 @@ def _build_dispatcher(
 
     if orchestrator is not None and keychain is not None and auth_runner_factory is not None:
         async def _bind_with_orch(args):
-            from feishu_bot_codex.daemon.handlers import handle_bind_with_orchestrator
+            from feishu_bot_codex_win.daemon.handlers import handle_bind_with_orchestrator
             async for ev in handle_bind_with_orchestrator(
                 args, store=store, keychain=keychain,
                 auth_runner_factory=auth_runner_factory,
@@ -69,7 +78,7 @@ def _build_dispatcher(
             ):
                 yield ev
         async def _unbind_with_orch(args):
-            from feishu_bot_codex.daemon.handlers import handle_unbind_with_orchestrator
+            from feishu_bot_codex_win.daemon.handlers import handle_unbind_with_orchestrator
             async for ev in handle_unbind_with_orchestrator(args, store=store, keychain=keychain):
                 yield ev
         d.register("bind", _bind_with_orch)
@@ -83,11 +92,7 @@ def _build_dispatcher(
     return d
 
 
-async def _handle_client(
-    reader: asyncio.StreamReader,
-    writer: asyncio.StreamWriter,
-    dispatcher: Dispatcher,
-) -> None:
+async def _handle_client(reader, writer, dispatcher: Dispatcher) -> None:
     try:
         line = await reader.readline()
         if not line:
@@ -124,29 +129,31 @@ async def _handle_client(
             pass
 
 
-async def _write_event(writer: asyncio.StreamWriter, event) -> None:
+async def _write_event(writer, event) -> None:
     writer.write((event.to_json_line() + "\n").encode())
     await writer.drain()
 
 
 async def serve(
-    socket_path: Path,
-    bindings_path: Path,
+    host: str = "127.0.0.1",
+    port: int = 0,
+    bindings_path: Path | None = None,
     orchestrator=None,
     keychain=None,
     auth_runner_factory=None,
     menu_pusher=None,
-    data_dir=None,
+    data_dir: Path | None = None,
 ) -> asyncio.AbstractServer:
-    """Start the daemon server bound to a Unix socket. Returns the running server."""
-    socket_path = Path(socket_path)
-    if socket_path.exists():
-        socket_path.unlink()
-    socket_path.parent.mkdir(parents=True, exist_ok=True)
+    """Start the daemon server on TCP loopback. Returns the running server.
 
-    # Use the orchestrator's store if provided so bind/list/start/stop all share
-    # the same in-memory cache. Creating a second BindingStore here would mean
-    # bind() updates one store's cache while find_by_cwd() reads from another.
+    port=0 → ephemeral. Chosen port is written to `data_dir/control.port`
+    so the CLI can discover it.
+    """
+    if data_dir is None:
+        raise ValueError("data_dir is required (port discovery file is written there)")
+    data_dir = Path(data_dir)
+    data_dir.mkdir(parents=True, exist_ok=True)
+
     store = orchestrator._store if orchestrator is not None else BindingStore(bindings_path)
     dispatcher = _build_dispatcher(
         store,
@@ -160,7 +167,11 @@ async def serve(
     async def _on_client(reader, writer):
         await _handle_client(reader, writer, dispatcher)
 
-    server = await asyncio.start_unix_server(_on_client, path=str(socket_path))
-    os.chmod(socket_path, 0o600)
-    logger.info("daemon listening on %s", socket_path)
+    server = await asyncio.start_server(_on_client, host=host, port=port)
+
+    # Pull the actual bound port for ephemeral selection and publish it.
+    actual_port = server.sockets[0].getsockname()[1]
+    port_file = data_dir / "control.port"
+    port_file.write_text(f"{host}:{actual_port}\n", encoding="utf-8")
+    logger.info("daemon listening on %s:%d (port written to %s)", host, actual_port, port_file)
     return server

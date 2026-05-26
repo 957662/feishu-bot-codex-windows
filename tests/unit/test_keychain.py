@@ -1,117 +1,101 @@
-"""Tests for KeychainStore abstraction with in-memory fake."""
+"""Tests for the keychain abstraction.
+
+Covers:
+- InMemoryKeychainStore (used in unit tests across the codebase) for CRUD.
+- WindowsCredentialStore with a mocked `win32cred` — pure-logic check so the
+  suite runs cross-platform without pywin32 installed.
+"""
+
+from __future__ import annotations
+
+import sys
+import types
+from unittest.mock import MagicMock
 
 import pytest
 
-from feishu_bot_codex.config.keychain import InMemoryKeychainStore, KeychainStore
+from feishu_bot_codex_win.config.keychain import (
+    InMemoryKeychainStore,
+    WindowsCredentialStore,
+)
 
 
-def test_in_memory_store_put_and_get():
-    store: KeychainStore = InMemoryKeychainStore()
-    store.put("svc.alpha", "secret-1")
-    assert store.get("svc.alpha") == "secret-1"
+# ------------------- InMemoryKeychainStore -------------------
 
-
-def test_in_memory_store_get_missing_returns_none():
+def test_in_memory_put_get():
     store = InMemoryKeychainStore()
-    assert store.get("nonexistent") is None
+    store.put("alice", "s3cret")
+    assert store.get("alice") == "s3cret"
 
 
-def test_in_memory_store_overwrites():
+def test_in_memory_get_missing_returns_none():
     store = InMemoryKeychainStore()
-    store.put("svc.alpha", "v1")
-    store.put("svc.alpha", "v2")
-    assert store.get("svc.alpha") == "v2"
-
-
-def test_in_memory_store_delete():
-    store = InMemoryKeychainStore()
-    store.put("svc.alpha", "secret-1")
-    store.delete("svc.alpha")
-    assert store.get("svc.alpha") is None
-
-
-def test_in_memory_store_delete_missing_is_noop():
-    store = InMemoryKeychainStore()
-    store.delete("nonexistent")  # no raise
-
-
-import subprocess
-from unittest.mock import patch
-
-from feishu_bot_codex.config.keychain import MacOSKeychainStore
-
-
-def _completed(returncode=0, stdout="", stderr=""):
-    return subprocess.CompletedProcess(args=[], returncode=returncode, stdout=stdout, stderr=stderr)
-
-
-@patch("feishu_bot_codex.config.keychain.subprocess.run")
-def test_macos_keychain_put_calls_security_add(mock_run):
-    mock_run.return_value = _completed(0)
-    store = MacOSKeychainStore(service_prefix="feishu-bot-claude")
-    store.put("foo-bot.app_secret", "s3cret")
-    call_args = mock_run.call_args[0][0]
-    assert call_args[0:2] == ["security", "add-generic-password"]
-    assert "-U" in call_args  # update-if-exists
-    assert "-a" in call_args and "foo-bot.app_secret" in call_args
-    assert "-s" in call_args and "feishu-bot-claude" in call_args
-    assert "-w" in call_args and "s3cret" in call_args
-
-
-@patch("feishu_bot_codex.config.keychain.subprocess.run")
-def test_macos_keychain_get_returns_password_on_success(mock_run):
-    mock_run.return_value = _completed(0, stdout="s3cret\n")
-    store = MacOSKeychainStore(service_prefix="feishu-bot-claude")
-    assert store.get("foo-bot.app_secret") == "s3cret"
-    call_args = mock_run.call_args[0][0]
-    assert call_args[0:2] == ["security", "find-generic-password"]
-    assert "-w" in call_args
-
-
-@patch("feishu_bot_codex.config.keychain.subprocess.run")
-def test_macos_keychain_get_returns_none_when_missing(mock_run):
-    mock_run.return_value = _completed(44, stderr="security: SecKeychainSearchCopyNext: ...")
-    store = MacOSKeychainStore(service_prefix="feishu-bot-claude")
     assert store.get("missing") is None
 
 
-@patch("feishu_bot_codex.config.keychain.subprocess.run")
-def test_macos_keychain_get_raises_on_other_errors(mock_run):
-    mock_run.return_value = _completed(1, stderr="permission denied")
-    store = MacOSKeychainStore(service_prefix="feishu-bot-claude")
-    with pytest.raises(RuntimeError, match="keychain get failed"):
-        store.get("foo")
+def test_in_memory_delete():
+    store = InMemoryKeychainStore()
+    store.put("alice", "x")
+    store.delete("alice")
+    assert store.get("alice") is None
 
 
-@patch("feishu_bot_codex.config.keychain.subprocess.run")
-def test_macos_keychain_delete_succeeds(mock_run):
-    mock_run.return_value = _completed(0)
-    store = MacOSKeychainStore(service_prefix="feishu-bot-claude")
-    store.delete("foo-bot.app_secret")
-    call_args = mock_run.call_args[0][0]
-    assert call_args[0:2] == ["security", "delete-generic-password"]
+def test_in_memory_delete_missing_is_noop():
+    store = InMemoryKeychainStore()
+    store.delete("nope")  # must not raise
 
 
-@patch("feishu_bot_codex.config.keychain.subprocess.run")
-def test_macos_keychain_delete_missing_is_noop(mock_run):
-    mock_run.return_value = _completed(44)
-    store = MacOSKeychainStore(service_prefix="feishu-bot-claude")
-    store.delete("missing")  # no raise
+# ------------------- WindowsCredentialStore -------------------
+
+@pytest.fixture
+def fake_win32cred(monkeypatch):
+    """Install a fake `win32cred` module so the tests run on macOS / Linux."""
+    fake = types.ModuleType("win32cred")
+    fake.CRED_TYPE_GENERIC = 1
+    fake.CRED_PERSIST_LOCAL_MACHINE = 2
+    fake.CredWrite = MagicMock()
+    fake.CredRead = MagicMock()
+    fake.CredDelete = MagicMock()
+    monkeypatch.setitem(sys.modules, "win32cred", fake)
+    return fake
 
 
-@patch("feishu_bot_codex.config.keychain.subprocess.run")
-def test_macos_keychain_put_raises_on_error(mock_run):
-    """MacOSKeychainStore.put raises RuntimeError on non-zero exit."""
-    mock_run.return_value = _completed(1, stderr="permission denied")
-    store = MacOSKeychainStore(service_prefix="feishu-bot-claude")
-    with pytest.raises(RuntimeError, match="keychain put failed"):
-        store.put("foo-bot.app_secret", "s3cret")
+def test_windows_put_calls_credwrite(fake_win32cred):
+    store = WindowsCredentialStore()
+    store.put("mybot", "topsecret")
+    fake_win32cred.CredWrite.assert_called_once()
+    cred = fake_win32cred.CredWrite.call_args[0][0]
+    assert cred["TargetName"] == "feishu-bot-codex-win:mybot"
+    assert cred["CredentialBlob"] == "topsecret"
 
 
-@patch("feishu_bot_codex.config.keychain.subprocess.run")
-def test_macos_keychain_delete_raises_on_non_zero_non_44(mock_run):
-    """MacOSKeychainStore.delete raises RuntimeError on exit code that is not 0 or 44."""
-    mock_run.return_value = _completed(1, stderr="permission denied")
-    store = MacOSKeychainStore(service_prefix="feishu-bot-claude")
-    with pytest.raises(RuntimeError, match="keychain delete failed"):
-        store.delete("foo-bot.app_secret")
+def test_windows_get_decodes_utf16le_bytes(fake_win32cred):
+    fake_win32cred.CredRead.return_value = {
+        "CredentialBlob": "hello".encode("utf-16-le"),
+    }
+    store = WindowsCredentialStore()
+    assert store.get("mybot") == "hello"
+
+
+def test_windows_get_returns_none_when_missing(fake_win32cred):
+    class _NotFound(Exception):
+        winerror = 1168
+    fake_win32cred.CredRead.side_effect = _NotFound()
+    store = WindowsCredentialStore()
+    assert store.get("mybot") is None
+
+
+def test_windows_delete_calls_creddelete(fake_win32cred):
+    store = WindowsCredentialStore()
+    store.delete("mybot")
+    fake_win32cred.CredDelete.assert_called_once()
+    kwargs = fake_win32cred.CredDelete.call_args.kwargs
+    assert kwargs["TargetName"] == "feishu-bot-codex-win:mybot"
+
+
+def test_windows_delete_swallows_not_found(fake_win32cred):
+    class _NotFound(Exception):
+        winerror = 1168
+    fake_win32cred.CredDelete.side_effect = _NotFound()
+    store = WindowsCredentialStore()
+    store.delete("mybot")  # must not raise

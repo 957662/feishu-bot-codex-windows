@@ -5,7 +5,7 @@ import time
 
 import pytest
 
-from feishu_bot_codex.daemon.ratelimit import TokenBucket
+from feishu_bot_codex_win.daemon.ratelimit import TokenBucket
 
 
 @pytest.mark.asyncio

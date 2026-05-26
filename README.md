@@ -1,9 +1,9 @@
-# feishu-bot-codex
+# feishu-bot-codex-win
 
 > **让本地的 Codex CLI(OpenAI 官方),通过飞书机器人随时随地遥控。**
 > 跟姊妹仓 [feishu-bot-claude](https://github.com/957662/feishu-bot-claude) 同一套架构,把 Claude 换成了 Codex,**也兼容 Claude**(选 `--agent` 即可)。
 
-[![Platform](https://img.shields.io/badge/platform-macOS-blue)](https://github.com/957662/feishu-bot-codex)
+[![Platform](https://img.shields.io/badge/platform-macOS-blue)](https://github.com/957662/feishu-bot-codex-win)
 [![Agent](https://img.shields.io/badge/agent-codex%20%7C%20claude-purple)]()
 [![Python](https://img.shields.io/badge/python-3.11%2B-green)](https://www.python.org/)
 [![License](https://img.shields.io/badge/license-PolyForm%20Noncommercial%201.0.0-orange)](LICENSE)
@@ -21,7 +21,7 @@
 
 ## 🤔 它跟 feishu-bot-claude 的关系
 
-| | feishu-bot-claude | **feishu-bot-codex(本仓)** |
+| | feishu-bot-claude | **feishu-bot-codex-win(本仓)** |
 |---|---|---|
 | 默认 agent | Claude Code | **Codex CLI** |
 | 支持 agent | Claude only | **Codex + Claude(选)** |
@@ -52,16 +52,16 @@
 ## 🚀 快速开始
 
 ```bash
-git clone https://github.com/957662/feishu-bot-codex ~/project/feishu-bot-codex
-cd ~/project/feishu-bot-codex
+git clone https://github.com/957662/feishu-bot-codex-win ~/project/feishu-bot-codex-win
+cd ~/project/feishu-bot-codex-win
 ./setup.sh
 cd ~/your-project
 
 # 默认起 codex
-feishu-bot-codex shell
+feishu-bot-codex-win shell
 
 # 或者起 claude(同样工作)
-feishu-bot-codex shell --agent claude
+feishu-bot-codex-win shell --agent claude
 ```
 
 进入 Codex / Claude TUI 后:
@@ -100,8 +100,8 @@ feishu-bot-codex shell --agent claude
 │            │ tail-f + 自动识别格式                              │   │
 │            ▼                                                   │   │
 │  ┌──────────────────────────────────────────────────────────┐  │   │
-│  │             feishu-bot-codex daemon                      │  │   │
-│  │   (~/.feishu-bot-codex/control.sock)                     │  │   │
+│  │             feishu-bot-codex-win daemon                      │  │   │
+│  │   (~/.feishu-bot-codex-win/control.sock)                     │  │   │
 │  │                                                          │  │   │
 │  │   ┌────────────────┐       ┌─────────────────────────┐  │  │   │
 │  │   │ outbound 流水线 │       │     inbound 流水线      │  │  │   │
@@ -125,9 +125,9 @@ feishu-bot-codex shell --agent claude
 ## 🧪 端到端验证
 
 ```bash
-cd ~/project/feishu-bot-codex && .venv/bin/python -c "
+cd ~/project/feishu-bot-codex-win && .venv/bin/python -c "
 from pathlib import Path
-from feishu_bot_codex.rendering.turn import JsonlEvent, group_into_turns, render_turn_to_card
+from feishu_bot_codex_win.rendering.turn import JsonlEvent, group_into_turns, render_turn_to_card
 
 # 拿你最大的一个 codex session 测一下
 fixture = max(Path('~/.codex/sessions').expanduser().glob('*/*/*/rollout-*.jsonl'),
@@ -151,7 +151,7 @@ for t in turns[-1:]:
 
 | 问题 | 原因 | 影响 |
 |---|---|---|
-| `/bot-new` 等斜杠命令在 Codex TUI 里没有 | Codex 走 plugin marketplace,本仓没打包成 plugin | 你需要用 CLI 命令 `feishu-bot-codex bind <name> --cwd <path>` |
+| `/bot-new` 等斜杠命令在 Codex TUI 里没有 | Codex 走 plugin marketplace,本仓没打包成 plugin | 你需要用 CLI 命令 `feishu-bot-codex-win bind <name> --cwd <path>` |
 | Codex 的 reasoning(思考)不显示 | 渲染时丢弃 `payload.type=reasoning` | 你只看到结论,不看到推理过程(其实更干净) |
 | Token usage 不显示在卡片底部 | Codex 把 usage 放在 `event_msg.token_count`,我们暂时跳过 | 卡片底部少一行"500+20 tokens" |
 | 同机两个 agent 两个机器人没自动 dispatch | 当前 `--agent` 是 CLI 参数,binding 还没存 agent 字段 | 一个 cwd 暂时只能绑一个 agent |

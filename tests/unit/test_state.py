@@ -2,7 +2,7 @@
 
 import pytest
 
-from feishu_bot_codex.daemon.state import BindingRuntimeState
+from feishu_bot_codex_win.daemon.state import BindingRuntimeState
 
 
 def test_initial_state_empty():

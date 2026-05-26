@@ -5,7 +5,7 @@ from pathlib import Path
 
 import pytest
 
-from feishu_bot_codex.daemon.jsonl_watcher import JsonlWatcher
+from feishu_bot_codex_win.daemon.jsonl_watcher import JsonlWatcher
 
 
 @pytest.mark.asyncio

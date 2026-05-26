@@ -183,8 +183,8 @@ def group_into_turns(events: Iterable[JsonlEvent]) -> list[Turn]:
     return turns
 
 
-from feishu_bot_codex.rendering.card import build_card, build_header, build_markdown, build_note
-from feishu_bot_codex.rendering.tools import render_tool_block
+from feishu_bot_codex_win.rendering.card import build_card, build_header, build_markdown, build_note
+from feishu_bot_codex_win.rendering.tools import render_tool_block
 
 # Feishu card limits (see tools.py): cap individual markdown elements and
 # total element count to stay under the per-message budget (~30KB / ~50 elements).

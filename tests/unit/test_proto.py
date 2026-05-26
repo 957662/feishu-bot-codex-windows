@@ -4,7 +4,7 @@ import json
 
 import pytest
 
-from feishu_bot_codex.proto import Request
+from feishu_bot_codex_win.proto import Request
 
 
 def test_request_serializes_to_json_line():
@@ -36,7 +36,7 @@ def test_request_roundtrip():
     assert restored == original
 
 
-from feishu_bot_codex.proto import (
+from feishu_bot_codex_win.proto import (
     LogEvent,
     QRCodeEvent,
     ProgressEvent,

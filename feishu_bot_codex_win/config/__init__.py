@@ -1,10 +1,10 @@
 """Configuration storage layer."""
 
-from feishu_bot_codex.config.binding import BindingConfig, BindingStore
-from feishu_bot_codex.config.keychain import (
+from feishu_bot_codex_win.config.binding import BindingConfig, BindingStore
+from feishu_bot_codex_win.config.keychain import (
     InMemoryKeychainStore,
     KeychainStore,
-    MacOSKeychainStore,
+    WindowsCredentialStore,
 )
 
 __all__ = [
@@ -12,5 +12,5 @@ __all__ = [
     "BindingStore",
     "KeychainStore",
     "InMemoryKeychainStore",
-    "MacOSKeychainStore",
+    "WindowsCredentialStore",
 ]

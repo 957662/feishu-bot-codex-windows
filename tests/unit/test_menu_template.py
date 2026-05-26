@@ -1,6 +1,6 @@
 """Tests for the default menu JSON template."""
 
-from feishu_bot_codex.menu_template import DEFAULT_MENU, build_menu_json
+from feishu_bot_codex_win.menu_template import DEFAULT_MENU, build_menu_json
 
 
 def test_default_menu_has_5_top_level_groups():

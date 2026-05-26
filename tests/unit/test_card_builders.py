@@ -1,6 +1,6 @@
 """Tests for atomic card JSON builders."""
 
-from feishu_bot_codex.rendering.card import (
+from feishu_bot_codex_win.rendering.card import (
     build_card,
     build_header,
     build_markdown,

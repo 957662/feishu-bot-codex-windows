@@ -9,13 +9,14 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Callable
 
-from feishu_bot_codex.config.binding import BindingConfig, BindingStore
-from feishu_bot_codex.daemon.feishu import LarkCli
-from feishu_bot_codex.daemon.inbound import InboundPipeline
-from feishu_bot_codex.daemon.outbound import OutboundPipeline
-from feishu_bot_codex.daemon.ratelimit import TokenBucket
-from feishu_bot_codex.daemon.state import BindingRuntimeState
-from feishu_bot_codex.daemon.tmux import Tmux
+from feishu_bot_codex_win.config.binding import BindingConfig, BindingStore
+from feishu_bot_codex_win.daemon.feishu import LarkCli
+from feishu_bot_codex_win.daemon.inbound import InboundPipeline
+from feishu_bot_codex_win.daemon.outbound import OutboundPipeline
+from feishu_bot_codex_win.daemon.ratelimit import TokenBucket
+from feishu_bot_codex_win.daemon.state import BindingRuntimeState
+from feishu_bot_codex_win.daemon.zellij import SessionMux as Tmux  # noqa: F401
+from feishu_bot_codex_win.daemon.zellij import Tmux
 
 logger = logging.getLogger(__name__)
 
@@ -238,7 +239,7 @@ class Orchestrator:
 
     async def _outbound_loop(self, running: RunningBinding, jsonl_path: Path, state_path: Path) -> None:
         """Watch jsonl, process new bytes on each change, persist state."""
-        from feishu_bot_codex.daemon.jsonl_watcher import JsonlWatcher
+        from feishu_bot_codex_win.daemon.jsonl_watcher import JsonlWatcher
         watcher = JsonlWatcher(jsonl_path)
         try:
             async for _ in watcher.changes():

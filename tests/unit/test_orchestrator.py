@@ -6,10 +6,10 @@ from pathlib import Path
 
 import pytest
 
-from feishu_bot_codex.config.binding import BindingConfig, BindingStore
-from feishu_bot_codex.daemon.feishu import FakeLarkCli
-from feishu_bot_codex.daemon.orchestrator import Orchestrator
-from feishu_bot_codex.daemon.tmux import FakeTmux
+from feishu_bot_codex_win.config.binding import BindingConfig, BindingStore
+from feishu_bot_codex_win.daemon.feishu import FakeLarkCli
+from feishu_bot_codex_win.daemon.orchestrator import Orchestrator
+from feishu_bot_codex_win.daemon.zellij import FakeTmux
 
 
 def _config(name="foo-bot", project_dir="/abs/foo") -> BindingConfig:

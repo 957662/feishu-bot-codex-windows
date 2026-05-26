@@ -4,7 +4,7 @@ from datetime import datetime, timezone
 
 import pytest
 
-from feishu_bot_codex.config.binding import BindingConfig
+from feishu_bot_codex_win.config.binding import BindingConfig
 
 
 def _example_config(**overrides) -> BindingConfig:

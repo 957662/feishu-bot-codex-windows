@@ -4,9 +4,9 @@ import json
 
 import pytest
 
-from feishu_bot_codex.daemon.feishu import FakeLarkCli
-from feishu_bot_codex.daemon.inbound import InboundPipeline
-from feishu_bot_codex.daemon.tmux import FakeTmux
+from feishu_bot_codex_win.daemon.feishu import FakeLarkCli
+from feishu_bot_codex_win.daemon.inbound import InboundPipeline
+from feishu_bot_codex_win.daemon.zellij import FakeTmux
 
 
 def _text_event(text: str, sender_id: str = "ou_user") -> dict:

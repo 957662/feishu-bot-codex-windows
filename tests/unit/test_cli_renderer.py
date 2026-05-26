@@ -1,7 +1,7 @@
 """Tests for CLI event renderer (pure, no I/O)."""
 
-from feishu_bot_codex.cli import render_event
-from feishu_bot_codex.proto import (
+from feishu_bot_codex_win.cli import render_event
+from feishu_bot_codex_win.proto import (
     DoneEvent,
     LogEvent,
     ProgressEvent,
@@ -52,7 +52,7 @@ from click.testing import CliRunner
 
 
 def test_main_help_lists_subcommands():
-    from feishu_bot_codex.cli import main
+    from feishu_bot_codex_win.cli import main
     runner = CliRunner()
     result = runner.invoke(main, ["--help"])
     assert result.exit_code == 0

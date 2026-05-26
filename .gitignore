@@ -1,16 +1,36 @@
+# Python
 __pycache__/
-*.py[cod]
+*.pyc
+*.pyo
+*.pyd
 *.egg-info/
 .pytest_cache/
-.venv/
-venv/
+.mypy_cache/
+.ruff_cache/
 .coverage
 coverage.json
 htmlcov/
+
+# Virtual envs
+.venv/
+venv/
+env/
+
+# Editor / OS
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+*.swp
+
+# Project local state — never check in user data
+.feishu-bot-claude-win/
+*.log
+
+# Build artifacts
 dist/
 build/
-.DS_Store
-~/.feishu-bot-claude/
-vendor/lark-cli/
-test_output.log
+*.egg
+
+# uv (if used)
 uv.lock

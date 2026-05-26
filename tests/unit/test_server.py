@@ -1,34 +1,36 @@
-"""Unit tests for the daemon server."""
+"""Unit tests for the daemon TCP server (Windows-native edition).
+
+The macOS edition tested a Unix socket with 0600 perms; on Windows we use TCP
+loopback and verify (1) round-trip handlers (ping, unknown op), (2) that the
+server publishes its bound port to data_dir/control.port so the CLI can find it.
+"""
 
 import asyncio
 import json
-import tempfile
-from pathlib import Path
 
 import pytest
 
-from feishu_bot_codex.daemon.server import serve
-from feishu_bot_codex.proto import Request
+from feishu_bot_codex_win.daemon.server import serve
+from feishu_bot_codex_win.proto import Request
 
 
-@pytest.fixture
-def socket_path(tmp_path):
-    # AF_UNIX path limit on macOS is 104 chars; use a short tempdir path
-    import uuid
-    short = Path(tempfile.gettempdir()) / f"t{uuid.uuid4().hex[:8]}.sock"
-    yield short
-    if short.exists():
-        short.unlink(missing_ok=True)
+async def _start_server(tmp_path):
+    bindings_path = tmp_path / "bindings.toml"
+    server = await serve(
+        host="127.0.0.1",
+        port=0,  # ephemeral
+        bindings_path=bindings_path,
+        data_dir=tmp_path,
+    )
+    port = server.sockets[0].getsockname()[1]
+    return server, port
 
 
 @pytest.mark.asyncio
-async def test_server_responds_to_ping(socket_path, tmp_path):
-    """A client connecting and sending a ping request gets a ResultEvent + DoneEvent."""
-    bindings_path = tmp_path / "bindings.toml"
-    server = await serve(socket_path=socket_path, bindings_path=bindings_path)
-
+async def test_server_responds_to_ping(tmp_path):
+    server, port = await _start_server(tmp_path)
     try:
-        reader, writer = await asyncio.open_unix_connection(str(socket_path))
+        reader, writer = await asyncio.open_connection("127.0.0.1", port)
         req = Request(op="ping", args={}, request_id="t1")
         writer.write((req.to_json_line() + "\n").encode())
         await writer.drain()
@@ -54,11 +56,10 @@ async def test_server_responds_to_ping(socket_path, tmp_path):
 
 
 @pytest.mark.asyncio
-async def test_server_responds_to_unknown_op(socket_path, tmp_path):
-    bindings_path = tmp_path / "bindings.toml"
-    server = await serve(socket_path=socket_path, bindings_path=bindings_path)
+async def test_server_responds_to_unknown_op(tmp_path):
+    server, port = await _start_server(tmp_path)
     try:
-        reader, writer = await asyncio.open_unix_connection(str(socket_path))
+        reader, writer = await asyncio.open_connection("127.0.0.1", port)
         req = Request(op="totally-unknown", args={}, request_id="t2")
         writer.write((req.to_json_line() + "\n").encode())
         await writer.drain()
@@ -76,7 +77,6 @@ async def test_server_responds_to_unknown_op(socket_path, tmp_path):
         events = [json.loads(line) for line in lines]
         assert events[0]["type"] == "result"
         assert events[0]["ok"] is False
-        # Either "unknown op" (from validate()) or "no handler" (from dispatcher)
         assert "unknown" in events[0]["error"].lower() or "no handler" in events[0]["error"].lower()
         assert events[-1]["type"] == "done"
     finally:
@@ -85,13 +85,15 @@ async def test_server_responds_to_unknown_op(socket_path, tmp_path):
 
 
 @pytest.mark.asyncio
-async def test_server_socket_has_0600_perms(socket_path, tmp_path):
-    """The socket file must be 0600 so other users can't connect."""
-    bindings_path = tmp_path / "bindings.toml"
-    server = await serve(socket_path=socket_path, bindings_path=bindings_path)
+async def test_server_publishes_port_file(tmp_path):
+    """The CLI discovers the daemon via data_dir/control.port — verify it's written."""
+    server, port = await _start_server(tmp_path)
     try:
-        mode = socket_path.stat().st_mode & 0o777
-        assert mode == 0o600, f"expected 0600, got {oct(mode)}"
+        port_file = tmp_path / "control.port"
+        assert port_file.exists()
+        host, port_str = port_file.read_text().strip().rsplit(":", 1)
+        assert host == "127.0.0.1"
+        assert int(port_str) == port
     finally:
         server.close()
         await server.wait_closed()

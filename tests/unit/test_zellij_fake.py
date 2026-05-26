@@ -2,7 +2,7 @@
 
 import pytest
 
-from feishu_bot_codex.daemon.tmux import FakeTmux, Tmux
+from feishu_bot_codex_win.daemon.zellij import FakeTmux, Tmux
 
 
 def test_fake_records_new_session():

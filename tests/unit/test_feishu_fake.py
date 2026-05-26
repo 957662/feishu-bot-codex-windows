@@ -2,7 +2,7 @@
 
 import pytest
 
-from feishu_bot_codex.daemon.feishu import FakeLarkCli, LarkCli
+from feishu_bot_codex_win.daemon.feishu import FakeLarkCli, LarkCli
 
 
 @pytest.mark.asyncio
@@ -95,7 +95,7 @@ async def test_fake_push_menu_can_fail():
         await lark.push_menu(app_id="cli_x", menu_json={})
 
 
-from feishu_bot_codex.daemon.feishu import FeishuThrottled
+from feishu_bot_codex_win.daemon.feishu import FeishuThrottled
 
 
 @pytest.mark.asyncio

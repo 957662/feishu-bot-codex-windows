@@ -6,10 +6,10 @@ import json
 import logging
 from pathlib import Path
 
-from feishu_bot_codex.daemon.feishu import LarkCli
-from feishu_bot_codex.daemon.ratelimit import TokenBucket
-from feishu_bot_codex.daemon.state import BindingRuntimeState
-from feishu_bot_codex.rendering.turn import (
+from feishu_bot_codex_win.daemon.feishu import LarkCli
+from feishu_bot_codex_win.daemon.ratelimit import TokenBucket
+from feishu_bot_codex_win.daemon.state import BindingRuntimeState
+from feishu_bot_codex_win.rendering.turn import (
     JsonlEvent,
     Turn,
     render_turn_to_card,

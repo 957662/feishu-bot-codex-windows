@@ -4,7 +4,7 @@ import asyncio
 
 import pytest
 
-from feishu_bot_codex.daemon.auth import BotCreationResult, bot_new
+from feishu_bot_codex_win.daemon.auth import BotCreationResult, bot_new
 
 
 async def _async_lines(lines):
