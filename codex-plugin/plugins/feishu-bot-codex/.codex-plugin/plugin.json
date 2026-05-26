@@ -9,6 +9,7 @@
   "repository": "https://github.com/957662/feishu-bot-codex",
   "license": "PolyForm-Noncommercial-1.0.0",
   "keywords": ["feishu", "lark", "bot", "remote-control", "mirror"],
+  "skills": "./skills/",
   "interface": {
     "displayName": "Feishu Bot",
     "shortDescription": "Mirror this TUI session to a dedicated Feishu bot",
