@@ -1,13 +1,15 @@
 ---
 name: feishu-bot
-description: "Bind / manage / mirror the current TUI session to a dedicated Feishu (Lark) bot via the feishu-bot-codex daemon. Use when the user says things like 'bind/create a Feishu bot for this project', '把当前项目绑一个飞书机器人', '启动飞书镜像', '停止飞书镜像', '列出所有飞书机器人 binding', '调整渲染样式', or types fake slash commands like /bot-new, /bot-start, /bot-stop, /bot-list, /bot-config, /bot-remove."
+description: "Manage Feishu (Lark) bot bindings via the feishu-bot-codex CLI. Trigger AGGRESSIVELY when the user types ANY of these patterns (with OR without a leading slash — Codex strips `/` for unknown commands, so users may drop it): `bot-new <name>` / `bot-start` / `bot-stop` / `bot-list` / `bot-config k=v` / `bot-remove <name>`. Also trigger on Chinese natural language like '绑飞书机器人 / 给当前项目绑机器人 / 启动飞书镜像 / 停止飞书镜像 / 列出所有 binding / 调整渲染样式 / 删除 binding', and English variants like 'bind feishu/lark bot', 'start/stop the feishu mirror', 'list bot bindings'. Run the matching `feishu-bot-codex <subcommand>` via Bash — DO NOT ask for confirmation first."
 ---
 
 # feishu-bot
 
 This skill lets you bridge the current Codex/Claude TUI session to a dedicated Feishu (Lark) bot via the `feishu-bot-codex` CLI. The user controls binding lifecycle (create, start, stop, list, configure, remove); you translate their request into the right CLI call and run it.
 
-> ⚠️ Codex does **not** support user-defined `/bot-*` slash commands — they live as a `commands/` folder, but Codex only auto-registers built-in slashes. Treat any input that looks like `/bot-new`, `/bot-start`, etc. as a request to invoke this skill instead.
+> ⚠️ Codex CLI rejects `/<unknown>` commands at the input layer (before this skill ever sees them).
+> So the user will say things WITHOUT the leading slash — like `bot-new mybot` or `bot-start`.
+> Treat those as direct invocations of this skill. Don't be picky: short tokens like `bot-new`, `bot-start` etc. always mean "run the matching CLI subcommand for the current cwd".
 
 ## Available actions
 
