@@ -172,7 +172,18 @@ class InboundPipeline:
         self._tmux.send_keys(session=self._tmux_session, keys=text + "\n")
 
     async def _handle_image(self, message_id: str, content_raw) -> None:
-        """Standalone image message: download + inject absolute file path."""
+        """Standalone image message: download + inject absolute file path.
+
+        Codex CLI quirks we work around:
+        1. Input starting with `/` triggers slash-command parsing — a bare
+           absolute path gets rejected as an unknown slash command.
+        2. The input box doesn't auto-submit on raw paste of a long path
+           (Enter gets swallowed by an internal completion popup).
+
+        Solution: prefix with "Image: " so codex parses as plain text, then
+        sleep briefly to let codex auto-detect the embedded absolute path,
+        then send Enter separately.
+        """
         image_key = self._extract_image_key(content_raw)
         if not image_key:
             logger.warning("image message %s missing image_key; content=%r", message_id, content_raw)
@@ -180,9 +191,12 @@ class InboundPipeline:
         path = await self._download_image(message_id, image_key)
         if path is None:
             return
-        # Send the absolute path as input text. Claude / Codex parse pasted
-        # paths as image attachments.
-        self._tmux.send_keys(session=self._tmux_session, keys=path + "\n")
+        # Type the body (no trailing newline yet)
+        self._tmux.send_keys(session=self._tmux_session, keys=f"Image: {path}")
+        # Give codex's path detector time to attach the image
+        await asyncio.sleep(0.4)
+        # Commit
+        self._tmux.send_keys(session=self._tmux_session, keys="\n")
 
     async def _inline_images(self, message_id: str, text: str) -> str:
         """Replace any `[Image: img_xxx]` occurrences in text with downloaded paths."""
