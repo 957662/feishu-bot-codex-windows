@@ -1,0 +1,18 @@
+{
+  "schema": "2.0",
+  "header": {
+    "template": "purple",
+    "title": {
+      "tag": "plain_text",
+      "content": "🤖 Codex · test-project"
+    }
+  },
+  "body": {
+    "elements": [
+      {
+        "tag": "markdown",
+        "content": "你好!有什么可以帮你?"
+      }
+    ]
+  }
+}

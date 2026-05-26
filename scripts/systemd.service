@@ -1,0 +1,15 @@
+[Unit]
+Description=feishu-bot-claude daemon
+After=network.target
+
+[Service]
+Type=simple
+Environment="PATH=/opt/homebrew/bin:/usr/local/bin:%h/.local/bin:/usr/bin:/bin:/usr/sbin:/sbin"
+ExecStart=__PYTHON__ -m feishu_bot_claude daemon
+Restart=on-failure
+RestartSec=5
+StandardOutput=append:__HOME__/.feishu-bot-claude/logs/daemon.log
+StandardError=append:__HOME__/.feishu-bot-claude/logs/daemon.err.log
+
+[Install]
+WantedBy=default.target
