@@ -246,7 +246,7 @@ async def handle_bind_with_orchestrator(
                     name,
                 )
                 return
-            secret_ref = f"feishu-bot-claude.{name}.app_secret"
+            secret_ref = f"feishu-bot-codex.{name}.app_secret"
             try:
                 keychain.put(secret_ref, "")  # lark-cli manages real secret
             except Exception:

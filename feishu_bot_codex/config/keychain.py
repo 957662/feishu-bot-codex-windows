@@ -48,7 +48,7 @@ class MacOSKeychainStore(KeychainStore):
 
     _NOT_FOUND_RETURNCODE = 44  # `security` exit code for "item not found"
 
-    def __init__(self, service_prefix: str = "feishu-bot-claude") -> None:
+    def __init__(self, service_prefix: str = "feishu-bot-codex") -> None:
         self._service = service_prefix
 
     def put(self, key: str, secret: str) -> None:

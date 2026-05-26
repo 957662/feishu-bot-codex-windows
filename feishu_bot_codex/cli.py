@@ -83,7 +83,7 @@ import click
 
 DEFAULT_SOCKET = Path(os.environ.get(
     "FEISHU_BOT_CLAUDE_SOCKET",
-    Path.home() / ".feishu-bot-claude" / "control.sock",
+    Path.home() / ".feishu-bot-codex" / "control.sock",
 ))
 
 
@@ -135,7 +135,7 @@ def _print_events_sync(socket_path: Path, op: str, args: dict) -> int:
     return asyncio.run(_drive())
 
 
-@click.group(help="feishu-bot-claude — Feishu bridge for Claude Code")
+@click.group(help="feishu-bot-codex — Feishu bridge for Codex/Claude CLI")
 @click.option("--socket", "socket_path", type=click.Path(path_type=Path), default=DEFAULT_SOCKET, show_default=True)
 @click.pass_context
 def main(ctx, socket_path):
@@ -250,8 +250,8 @@ def shell(ctx, cwd, agent, extra_args):
 
     pkg_dir = Path(__file__).resolve().parent
     candidates = [
-        pkg_dir.parent / "scripts" / "feishu-bot-claude-shell",
-        pkg_dir.parent.parent / "scripts" / "feishu-bot-claude-shell",
+        pkg_dir.parent / "scripts" / "feishu-bot-codex-shell",
+        pkg_dir.parent.parent / "scripts" / "feishu-bot-codex-shell",
     ]
     script = next((p for p in candidates if p.exists()), None)
     if script is None:

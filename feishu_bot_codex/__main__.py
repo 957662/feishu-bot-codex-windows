@@ -2,7 +2,7 @@
 
 When invoked with `daemon` it starts the server. Otherwise it delegates to
 the Click CLI (so `python -m feishu_bot_codex ping` works just like
-`feishu-bot-claude ping`).
+`feishu-bot-codex ping`).
 """
 
 from __future__ import annotations
@@ -15,7 +15,7 @@ from pathlib import Path
 
 from feishu_bot_codex.daemon import serve
 
-_DEFAULT_DATA_DIR = Path.home() / ".feishu-bot-claude"
+_DEFAULT_DATA_DIR = Path.home() / ".feishu-bot-codex"
 
 
 async def _run_daemon() -> None:
