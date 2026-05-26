@@ -1,0 +1,20 @@
+{
+  "name": "feishu-bot-codex",
+  "interface": {
+    "displayName": "Feishu Bot for Codex"
+  },
+  "plugins": [
+    {
+      "name": "feishu-bot-codex",
+      "source": {
+        "source": "local",
+        "path": "./plugins/feishu-bot-codex"
+      },
+      "policy": {
+        "installation": "AVAILABLE",
+        "authentication": "ON_INSTALL"
+      },
+      "category": "Productivity"
+    }
+  ]
+}

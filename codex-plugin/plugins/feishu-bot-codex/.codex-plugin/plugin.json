@@ -1,0 +1,19 @@
+{
+  "name": "feishu-bot-codex",
+  "version": "0.1.0",
+  "description": "Bridge the current Codex/Claude TUI session to a dedicated Feishu bot. Provides /bot-new, /bot-start, /bot-stop, /bot-list, /bot-config, /bot-remove.",
+  "author": {
+    "name": "957662"
+  },
+  "homepage": "https://github.com/957662/feishu-bot-codex",
+  "repository": "https://github.com/957662/feishu-bot-codex",
+  "license": "PolyForm-Noncommercial-1.0.0",
+  "keywords": ["feishu", "lark", "bot", "remote-control", "mirror"],
+  "interface": {
+    "displayName": "Feishu Bot",
+    "shortDescription": "Mirror this TUI session to a dedicated Feishu bot",
+    "longDescription": "Slash commands to bind the current project to a Feishu bot, start/stop the mirror, list bindings, etc. Works inside both Codex CLI and Claude Code TUI. Requires the feishu-bot-codex daemon to be running.",
+    "developerName": "957662",
+    "category": "Productivity"
+  }
+}
