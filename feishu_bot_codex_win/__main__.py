@@ -45,9 +45,17 @@ async def _run_daemon() -> None:
     keychain = WindowsCredentialStore()
 
     def _lark_for_binding(cfg) -> RealLarkCli:
-        """RealLarkCli with WS event source for menu_v6 + card.action.trigger."""
+        """RealLarkCli scoped to one binding.
+
+        - profile=cfg.name: critical when multiple lark-cli profiles coexist
+          on this machine (codex + claude bots). Without --profile the
+          fallback `event consume` listens on the WRONG app's events.
+        - ws_app_id / ws_app_secret: WS path for menu/card events when a
+          secret is available; otherwise falls back to lark-cli subprocess.
+        """
         secret = keychain.get(cfg.secret_ref) if cfg.secret_ref else None
         return RealLarkCli(
+            profile=cfg.name,
             ws_app_id=cfg.feishu_app_id,
             ws_app_secret=secret,
             ws_domain=cfg.domain or "https://open.feishu.cn",
