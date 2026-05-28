@@ -51,17 +51,23 @@
 
 ## 🚀 快速开始
 
-```bash
+```powershell
 git clone https://github.com/957662/feishu-bot-codex-windows ~/project/feishu-bot-codex-win
 cd ~/project/feishu-bot-codex-win
-./setup.sh
-# 可选: npm i -g @mermaid-js/mermaid-cli   # 把 ```mermaid 代码块自动渲染成图片插到飞书卡片里
-cd ~/your-project
+
+# 全自动:setup.ps1 用 winget 装好 python/node/nssm/zellij/codex/lark-cli,
+# claude 和 mmdc 可选 — 每个都会问你。
+# NSSM 服务需要管理员 PowerShell;非管理员会跳过服务,其他都装。
+pwsh -ExecutionPolicy Bypass -File .\setup.ps1            # 交互式
+pwsh -ExecutionPolicy Bypass -File .\setup.ps1 -Yes       # 一把梭
+pwsh -ExecutionPolicy Bypass -File .\setup.ps1 -Doctor    # 只检测
+
+cd C:\your-project
 
 # 默认起 codex
 feishu-bot-codex-win shell
 
-# 或者起 claude(同样工作)
+# 或者起 claude(同样工作 — 需要 setup 时选装 Claude Code)
 feishu-bot-codex-win shell --agent claude
 ```
 
