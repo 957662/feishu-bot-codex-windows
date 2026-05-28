@@ -22,15 +22,15 @@ _DEFAULT_DATA_DIR = Path.home() / ".feishu-bot-codex-win"
 
 async def _run_daemon() -> None:
     # Default to TCP loopback. Port 0 = ephemeral; written to data_dir/control.port
-    # so the CLI can discover it. Override via FEISHU_BOT_CLAUDE_HOST/PORT.
-    host = os.environ.get("FEISHU_BOT_CLAUDE_HOST", "127.0.0.1")
-    port = int(os.environ.get("FEISHU_BOT_CLAUDE_PORT", "0"))
+    # so the CLI can discover it. Override via FEISHU_BOT_CODEX_HOST/PORT.
+    host = os.environ.get("FEISHU_BOT_CODEX_HOST", "127.0.0.1")
+    port = int(os.environ.get("FEISHU_BOT_CODEX_PORT", "0"))
     bindings_path = Path(os.environ.get(
-        "FEISHU_BOT_CLAUDE_BINDINGS",
+        "FEISHU_BOT_CODEX_BINDINGS",
         _DEFAULT_DATA_DIR / "bindings.toml",
     ))
     data_dir = Path(os.environ.get(
-        "FEISHU_BOT_CLAUDE_DATA_DIR",
+        "FEISHU_BOT_CODEX_DATA_DIR",
         _DEFAULT_DATA_DIR,
     ))
     data_dir.mkdir(parents=True, exist_ok=True)

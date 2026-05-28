@@ -280,11 +280,18 @@ class Orchestrator:
         return stale
 
     def _guess_jsonl_path(self, cfg: BindingConfig) -> Path:
-        """Find newest jsonl across BOTH backends (~/.codex + ~/.claude)."""
+        """Find newest jsonl for this binding.
+
+        Codex variant default: prefer %USERPROFILE%\\.codex\\sessions. Only
+        fall back to %USERPROFILE%\\.claude\\projects when no codex session
+        exists for this cwd — keeps a stray prior claude invocation in the
+        same cwd from winning the mtime tiebreak.
+        """
         import json
         home = Path.home()
-        candidates: list[Path] = []
 
+        # Pass 1: codex backend
+        codex_candidates: list[Path] = []
         sessions_root = home / ".codex" / "sessions"
         if sessions_root.exists():
             for path in sessions_root.glob("*/*/*/rollout-*.jsonl"):
@@ -297,22 +304,28 @@ class Orchestrator:
                     if meta.get("type") != "session_meta":
                         continue
                     if meta.get("payload", {}).get("cwd") == cfg.project_dir:
-                        candidates.append(path)
+                        codex_candidates.append(path)
                 except Exception:
                     continue
+        if codex_candidates:
+            codex_candidates.sort(key=lambda p: p.stat().st_mtime, reverse=True)
+            return codex_candidates[0]
 
-        encoded = cfg.project_dir.replace("/", "-").lstrip("-")
+        # Pass 2: claude backend (legacy / dual-agent users)
+        encoded = cfg.project_dir.replace("\\", "-").replace("/", "-").replace(":", "").lstrip("-")
         claude_dir = home / ".claude" / "projects" / f"-{encoded}"
         if claude_dir.exists():
-            candidates.extend(claude_dir.glob("*.jsonl"))
+            claude_candidates = sorted(
+                claude_dir.glob("*.jsonl"),
+                key=lambda p: p.stat().st_mtime,
+                reverse=True,
+            )
+            if claude_candidates:
+                return claude_candidates[0]
 
-        if not candidates:
-            if sessions_root.exists():
-                return sessions_root / "no-session.jsonl"
-            return claude_dir / "no-session.jsonl"
-
-        candidates.sort(key=lambda p: p.stat().st_mtime, reverse=True)
-        return candidates[0]
+        if sessions_root.exists():
+            return sessions_root / "no-session.jsonl"
+        return claude_dir / "no-session.jsonl"
 
     async def _outbound_loop(self, running: RunningBinding, jsonl_path: Path, state_path: Path) -> None:
         """Watch jsonl, process new bytes on each change, persist state."""

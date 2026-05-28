@@ -32,7 +32,7 @@ from feishu_bot_codex_win.proto import (
 )
 
 DEFAULT_DATA_DIR = Path(os.environ.get(
-    "FEISHU_BOT_CLAUDE_DATA_DIR",
+    "FEISHU_BOT_CODEX_DATA_DIR",
     Path.home() / ".feishu-bot-codex-win",
 ))
 
@@ -101,7 +101,7 @@ def render_event(event: ResponseEvent) -> str:
 def _open_url_in_browser(url: str) -> bool:
     if not url or not url.startswith("http"):
         return False
-    if os.environ.get("FEISHU_BOT_CLAUDE_NO_AUTO_OPEN"):
+    if os.environ.get("FEISHU_BOT_CODEX_NO_AUTO_OPEN"):
         return False
     try:
         if sys.platform == "win32":
@@ -211,13 +211,14 @@ def config(ctx, cwd, kv):
     sys.exit(_print_events_sync(ctx.obj["data_dir"], "config", {"cwd": str(cwd), "kv": list(kv)}))
 
 
-def _resolve_session_name(data_dir: Path, cwd: Path) -> str:
+def _resolve_session_name(data_dir: Path, cwd: Path, agent: str = "codex") -> str:
     """Ask daemon for the session name bound to `cwd`.
 
-    Falls back to `codex-<basename(cwd)>` if no binding exists or daemon
-    is unreachable.
+    Falls back to `<agent>-<basename(cwd)>` if no binding exists or daemon
+    is unreachable — `--agent claude` should yield a `claude-foo` session,
+    not `codex-foo`, to avoid clobbering an existing codex session.
     """
-    fallback = f"codex-{cwd.name}"
+    fallback = f"{agent}-{cwd.name}"
     cwd_resolved = str(cwd.resolve())
 
     async def _ask():
@@ -257,7 +258,7 @@ def shell(ctx, cwd, agent, agent_args):
     use zellij's `Ctrl+P, D` (detach).
     """
     target = (cwd or Path(os.getcwd())).resolve()
-    session_name = _resolve_session_name(ctx.obj["data_dir"], target)
+    session_name = _resolve_session_name(ctx.obj["data_dir"], target, agent)
 
     agent_cmd = [agent, *agent_args]
     # zellij needs `--` to separate its own args from the inner command

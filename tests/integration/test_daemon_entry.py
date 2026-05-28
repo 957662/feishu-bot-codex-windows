@@ -2,7 +2,7 @@
 
 The daemon writes its bound port to <data_dir>/control.port. The CLI reads
 that file to discover the daemon. Both pieces are driven by the
-FEISHU_BOT_CLAUDE_DATA_DIR env var.
+FEISHU_BOT_CODEX_DATA_DIR env var.
 """
 
 import asyncio
@@ -27,8 +27,8 @@ def _wait_for_port_file(port_file: Path, timeout: float = 5.0) -> None:
 
 def _spawn_daemon(data_dir: Path, bindings_path: Path) -> tuple[subprocess.Popen, dict]:
     env = os.environ.copy()
-    env["FEISHU_BOT_CLAUDE_DATA_DIR"] = str(data_dir)
-    env["FEISHU_BOT_CLAUDE_BINDINGS"] = str(bindings_path)
+    env["FEISHU_BOT_CODEX_DATA_DIR"] = str(data_dir)
+    env["FEISHU_BOT_CODEX_BINDINGS"] = str(bindings_path)
     proc = subprocess.Popen(
         [sys.executable, "-m", "feishu_bot_codex_win", "daemon"],
         env=env,
