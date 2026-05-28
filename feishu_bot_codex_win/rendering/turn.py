@@ -185,8 +185,8 @@ def group_into_turns(events: Iterable[JsonlEvent]) -> list[Turn]:
     return turns
 
 
-from feishu_bot_codex_win.rendering.card import build_card, build_header, build_image, build_markdown, build_note
-from feishu_bot_codex_win.rendering.tools import render_tool_block
+from feishu_bot_codex.rendering.card import build_card, build_header, build_image, build_markdown, build_note
+from feishu_bot_codex.rendering.tools import render_tool_block
 
 # Feishu card limits (see tools.py): cap individual markdown elements and
 # total element count to stay under the per-message budget (~30KB / ~50 elements).
@@ -248,8 +248,13 @@ def render_turn_to_card(
     project_name: str = "project",
     render_style: str = "rich",
     image_keys: dict[str, str] | None = None,
+    in_progress: bool = False,
 ) -> dict:
-    """Render a Turn to a Feishu interactive card JSON."""
+    """Render a Turn to a Feishu interactive card JSON.
+
+    `in_progress=True` appends a pacer "思考中…" line so the card visibly
+    differs across updates while the model is mid-turn.
+    """
     image_keys = image_keys or {}
     elements: list[dict] = []
     for event in turn.assistant_events:
@@ -284,6 +289,12 @@ def render_turn_to_card(
         dropped = len(elements) - (MAX_ELEMENTS_PER_CARD - 1)
         elements = elements[:MAX_ELEMENTS_PER_CARD - 1]
         elements.append(build_note(f"…省略 {dropped} 个工具调用/段落…"))
+
+    if in_progress:
+        import time
+        n = int(time.time()) % 4
+        dots = "·" * n + " " * (3 - n)
+        elements.append(build_note(f"⏳ 思考中…{dots}"))
 
     header = build_header(title=f"🤖 Codex · {project_name}")
     return build_card(header=header, elements=elements)
