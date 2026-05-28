@@ -25,7 +25,7 @@
 |---|---|---|
 | 默认 agent | Claude Code | **Codex CLI** |
 | 支持 agent | Claude only | **Codex + Claude(选)** |
-| jsonl 格式适配 | `~/.claude/projects/-<cwd>/*.jsonl`(role/content) | `~/.codex/sessions/YYYY/MM/DD/rollout-*.jsonl`(envelope/payload)**+** Claude legacy |
+| jsonl 格式适配 | `%USERPROFILE%\.claude\projects\-<cwd>\*.jsonl`(role/content) | `%USERPROFILE%\.codex\sessions\YYYY\MM\DD\rollout-*.jsonl`(envelope/payload)**+** Claude legacy |
 | 卡片标题 | 🤖 Claude · ... | 🤖 Codex · ... |
 | 飞书侧代码 | 一样 | 一样(逐字相同) |
 | 多 backend dispatch | 否 | **是(`--agent codex\|claude`)** |
@@ -42,18 +42,18 @@
 
 2. **`daemon/orchestrator.py::_guess_jsonl_path`** —— 同时扫两个 backend 找最新:
    ```python
-   # Codex: 扫 ~/.codex/sessions/*/*/*/rollout-*.jsonl,首行 session_meta.payload.cwd 匹配
-   # Claude: 扫 ~/.claude/projects/-<encoded-cwd>/*.jsonl
+   # Codex: 扫 %USERPROFILE%\.codex\sessions\*\*\*\rollout-*.jsonl,首行 session_meta.payload.cwd 匹配
+   # Claude: 扫 %USERPROFILE%\.claude\projects\-<encoded-cwd>\*.jsonl
    # 按 mtime 排序选最新
    ```
 
-3. **`cli.py shell` + `scripts/feishu-bot-claude-shell`** —— 加 `--agent codex|claude` 选项,默认 `codex`。
+3. **`cli.py shell`** —— 加 `--agent codex|claude` 选项,默认 `codex`。
 
 ## 🚀 快速开始
 
 ```powershell
-git clone https://github.com/957662/feishu-bot-codex-windows ~/project/feishu-bot-codex-win
-cd ~/project/feishu-bot-codex-win
+git clone https://github.com/957662/feishu-bot-codex-windows "$env:USERPROFILE\project\feishu-bot-codex-win"
+cd "$env:USERPROFILE\project\feishu-bot-codex-win"
 
 # 全自动:setup.ps1 用 winget 装好 python/node/nssm/zellij/codex/lark-cli,
 # claude 和 mmdc 可选 — 每个都会问你。
@@ -85,30 +85,31 @@ feishu-bot-codex shell --agent claude
 
 ```
 ┌────────────────────────────────────────────────────────────────────┐
-│                            你的 Mac                                │
+│                          你的 Windows 机                            │
 │                                                                    │
 │  ┌──────────────────────────┐                                      │
-│  │  Terminal (tmux session) │                                      │
+│  │ Terminal (zellij session)│                                      │
 │  │                          │                                      │
 │  │  ┌─── 二选一 ────┐       │                                      │
-│  │  │ Codex CLI    │  ←──── tmux send-keys 注入用户消息 ───────┐   │
+│  │  │ Codex CLI    │  ←─── zellij action write-chars 注入消息 ─┐   │
 │  │  │  (default)   │       │                                  │   │
 │  │  └──────────────┘       │                                  │   │
 │  │  ┌──────────────┐       │                                  │   │
-│  │  │ Claude Code  │  ←─── 也可以 (同样 send-keys) ────────────┤   │
+│  │  │ Claude Code  │  ←─── 也可以 ────────────────────────────┤   │
 │  │  └──────────────┘       │                                  │   │
 │  └─────────┬────────────────┘                                  │   │
 │            │                                                   │   │
 │            │ 各自写自己的 jsonl                                 │   │
 │            ▼                                                   │   │
-│   ~/.codex/sessions/.../rollout-*.jsonl     ┐                  │   │
-│   ~/.claude/projects/-<cwd>/*.jsonl         ┘                  │   │
+│   %USERPROFILE%\.codex\sessions\...\rollout-*.jsonl ┐          │   │
+│   %USERPROFILE%\.claude\projects\-<cwd>\*.jsonl     ┘          │   │
 │            │                                                   │   │
-│            │ tail-f + 自动识别格式                              │   │
+│            │ tail + 自动识别格式                                │   │
 │            ▼                                                   │   │
 │  ┌──────────────────────────────────────────────────────────┐  │   │
-│  │             feishu-bot-codex-win daemon                      │  │   │
-│  │   (~/.feishu-bot-codex-win/control.sock)                     │  │   │
+│  │             feishu-bot-codex-win daemon                  │  │   │
+│  │   (TCP loopback 127.0.0.1:<动态端口>,                    │  │   │
+│  │    端口写在 %USERPROFILE%\.feishu-bot-codex-win\control.port) │   │
 │  │                                                          │  │   │
 │  │   ┌────────────────┐       ┌─────────────────────────┐  │  │   │
 │  │   │ outbound 流水线 │       │     inbound 流水线      │  │  │   │
@@ -131,8 +132,9 @@ feishu-bot-codex shell --agent claude
 
 ## 🧪 端到端验证
 
-```bash
-cd ~/project/feishu-bot-codex-win && .venv/bin/python -c "
+```powershell
+cd "$env:USERPROFILE\project\feishu-bot-codex-win"
+.\.venv\Scripts\python.exe -c @"
 from pathlib import Path
 from feishu_bot_codex_win.rendering.turn import JsonlEvent, group_into_turns, render_turn_to_card
 
@@ -144,9 +146,12 @@ turns = group_into_turns(events)
 print(f'解析 {len(events)} 事件 → {len(turns)} 个 turn')
 for t in turns[-1:]:
     card = render_turn_to_card(t, project_name='smoke', render_style='rich')
-    print(f'最后一 turn: {len(card[\"body\"][\"elements\"])} 个卡片元素')
-"
+    print(f'最后一 turn: {len(card["body"]["elements"])} 个卡片元素')
+"@
 ```
+
+> Python `Path("~/.codex/sessions").expanduser()` 是跨平台的 —
+> 在 Windows 上自动展开成 `%USERPROFILE%\.codex\sessions`。
 
 预期输出类似:
 ```
