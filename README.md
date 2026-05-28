@@ -65,10 +65,10 @@ pwsh -ExecutionPolicy Bypass -File .\setup.ps1 -Doctor    # 只检测
 cd C:\your-project
 
 # 默认起 codex
-feishu-bot-codex-win shell
+feishu-bot-codex shell
 
 # 或者起 claude(同样工作 — 需要 setup 时选装 Claude Code)
-feishu-bot-codex-win shell --agent claude
+feishu-bot-codex shell --agent claude
 ```
 
 进入 Codex / Claude TUI 后:
@@ -158,7 +158,7 @@ for t in turns[-1:]:
 
 | 问题 | 原因 | 影响 |
 |---|---|---|
-| `/bot-new` 等斜杠命令在 Codex TUI 里没有 | Codex 走 plugin marketplace,本仓没打包成 plugin | 你需要用 CLI 命令 `feishu-bot-codex-win bind <name> --cwd <path>` |
+| `/bot-new` 等斜杠命令在 Codex TUI 里没有 | Codex 走 plugin marketplace,本仓没打包成 plugin | 你需要用 CLI 命令 `feishu-bot-codex bind <name> --cwd <path>` |
 | Codex 的 reasoning(思考)不显示 | 渲染时丢弃 `payload.type=reasoning` | 你只看到结论,不看到推理过程(其实更干净) |
 | Token usage 不显示在卡片底部 | Codex 把 usage 放在 `event_msg.token_count`,我们暂时跳过 | 卡片底部少一行"500+20 tokens" |
 | 同机两个 agent 两个机器人没自动 dispatch | 当前 `--agent` 是 CLI 参数,binding 还没存 agent 字段 | 一个 cwd 暂时只能绑一个 agent |

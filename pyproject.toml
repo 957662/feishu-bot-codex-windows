@@ -15,7 +15,7 @@ dependencies = [
 ]
 
 [project.scripts]
-feishu-bot-codex-win = "feishu_bot_codex_win.cli:main"
+feishu-bot-codex = "feishu_bot_codex_win.cli:main"
 
 [project.optional-dependencies]
 dev = [

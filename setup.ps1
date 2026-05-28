@@ -142,6 +142,13 @@ function Invoke-Install {
     New-Item -ItemType Directory -Force -Path (Join-Path $dataDir "logs") | Out-Null
     New-Item -ItemType Directory -Force -Path $shimDir | Out-Null
 
+    # 清理旧版 setup.ps1 写错名字的残留 (.cmd 文件名误用了 'claude')
+    $staleShim = Join-Path $shimDir "feishu-bot-claude.cmd"
+    if (Test-Path $staleShim) {
+        Remove-Item -Force -Path $staleShim
+        Write-Host "[cleanup] 删了旧版残留: $staleShim" -ForegroundColor DarkYellow
+    }
+
     $shimPath = Join-Path $shimDir "feishu-bot-codex.cmd"
     @"
 @echo off
@@ -189,7 +196,7 @@ function Invoke-Install {
 
     Write-Host ""
     Write-Host "✅ feishu-bot-codex-win installed." -ForegroundColor Green
-    Write-Host "Try:" -ForegroundColor Cyan
+    Write-Host "Try (注意命令名是 feishu-bot-codex,无 -win 后缀):" -ForegroundColor Cyan
     Write-Host "  feishu-bot-codex ping"
     Write-Host "  feishu-bot-codex bind <name> --cwd <project-path>"
     Write-Host "  feishu-bot-codex shell --cwd <project-path>"
@@ -206,6 +213,7 @@ function Invoke-Uninstall {
 
     Write-Host "==> 删 CLI shim" -ForegroundColor Cyan
     Remove-Item -Force -Path (Join-Path $shimDir "feishu-bot-codex.cmd") -ErrorAction SilentlyContinue
+    Remove-Item -Force -Path (Join-Path $shimDir "feishu-bot-claude.cmd") -ErrorAction SilentlyContinue  # 旧版残留
 
     Write-Host ""
     Write-Host "✅ Daemon stopped + service removed." -ForegroundColor Green
