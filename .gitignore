@@ -34,3 +34,4 @@ build/
 
 # uv (if used)
 uv.lock
+.claude/
