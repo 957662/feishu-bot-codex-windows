@@ -3,9 +3,9 @@
 Differences from the macOS edition:
 - Connects to daemon via TCP loopback (port discovered from data_dir/control.port)
 - `start <url>` (Windows) replaces `open` / `xdg-open` for auto-launching browser
-- `shell` spawns zellij + claude in a new console window (no exec — Windows
-  doesn't have execv-style PATH-based replacement that keeps the parent alive
-  as a TUI; we Popen and exit).
+- `shell` spawns zellij + codex/claude in a new console window (no exec —
+  Windows doesn't have execv-style PATH-based replacement that keeps the
+  parent alive as a TUI; we Popen and exit). Agent selectable via --agent.
 """
 
 from __future__ import annotations
@@ -148,7 +148,7 @@ def _print_events_sync(data_dir: Path, op: str, args: dict) -> int:
     return asyncio.run(_drive())
 
 
-@click.group(help="feishu-bot-claude — Feishu bridge for Claude Code (Windows)")
+@click.group(help="feishu-bot-codex — Feishu bridge for Codex CLI / Claude Code (Windows)")
 @click.option("--data-dir", "data_dir", type=click.Path(path_type=Path), default=DEFAULT_DATA_DIR, show_default=True)
 @click.pass_context
 def main(ctx, data_dir):
@@ -214,10 +214,10 @@ def config(ctx, cwd, kv):
 def _resolve_session_name(data_dir: Path, cwd: Path) -> str:
     """Ask daemon for the session name bound to `cwd`.
 
-    Falls back to `claude-<basename(cwd)>` if no binding exists or daemon
+    Falls back to `codex-<basename(cwd)>` if no binding exists or daemon
     is unreachable.
     """
-    fallback = f"claude-{cwd.name}"
+    fallback = f"codex-{cwd.name}"
     cwd_resolved = str(cwd.resolve())
 
     async def _ask():
@@ -239,27 +239,29 @@ def _resolve_session_name(data_dir: Path, cwd: Path) -> str:
 
 
 @main.command(
-    help="Start zellij + claude shell for current project (new console window). "
-         "Extra args after options are forwarded to claude.",
+    help="Start zellij + codex/claude shell for current project (new console window). "
+         "Extra args after options are forwarded to the chosen agent.",
     context_settings={"ignore_unknown_options": True, "allow_extra_args": True},
 )
 @click.option("--cwd", default=None, type=click.Path(path_type=Path))
-@click.argument("claude_args", nargs=-1, type=click.UNPROCESSED)
+@click.option("--agent", type=click.Choice(["codex", "claude"]), default="codex",
+              show_default=True, help="Which agent CLI to spawn inside zellij.")
+@click.argument("agent_args", nargs=-1, type=click.UNPROCESSED)
 @click.pass_context
-def shell(ctx, cwd, claude_args):
-    """Spawn `zellij --session <name> -- claude [args...]` in a NEW console.
+def shell(ctx, cwd, agent, agent_args):
+    """Spawn `zellij --session <name> -- <agent> [args...]` in a NEW console.
 
     Unlike tmux's detached `new-session -d`, zellij combines create + attach in
-    one command. We open a new console window for it so the user sees Claude's
-    TUI directly. To leave the session alive while closing the window, use
-    zellij's `Ctrl+P, D` (detach).
+    one command. We open a new console window for it so the user sees the
+    agent's TUI directly. To leave the session alive while closing the window,
+    use zellij's `Ctrl+P, D` (detach).
     """
     target = (cwd or Path(os.getcwd())).resolve()
     session_name = _resolve_session_name(ctx.obj["data_dir"], target)
 
-    claude_cmd = ["claude", *claude_args]
+    agent_cmd = [agent, *agent_args]
     # zellij needs `--` to separate its own args from the inner command
-    zellij_argv = ["zellij", "--session", session_name, "--", *claude_cmd]
+    zellij_argv = ["zellij", "--session", session_name, "--", *agent_cmd]
 
     if sys.platform == "win32":
         CREATE_NEW_CONSOLE = 0x00000010
@@ -269,7 +271,7 @@ def shell(ctx, cwd, claude_args):
             creationflags=CREATE_NEW_CONSOLE,
             close_fds=True,
         )
-        click.echo(f"Started zellij session {session_name!r} in a new console window.")
+        click.echo(f"Started zellij session {session_name!r} ({agent}) in a new console window.")
         click.echo("To detach without killing the session: Ctrl+P, then D.")
     else:
         # Dev fallback for testing on macOS / Linux without WSL.

@@ -69,7 +69,8 @@ class Orchestrator:
         tmux = self._tmux_factory(cfg.name)
         if not tmux.has_session(cfg.tmux_session):
             raise RuntimeError(
-                f"tmux session {cfg.tmux_session!r} is not running — start Claude first"
+                f"zellij session {cfg.tmux_session!r} is not running — "
+                f"start the agent first (`feishu-bot-codex shell --cwd {cfg.project_dir}`)"
             )
 
         lark = self._lark_factory(cfg)
