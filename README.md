@@ -3,7 +3,7 @@
 > **让本地的 Codex CLI(OpenAI 官方),通过飞书机器人随时随地遥控。**
 > 跟姊妹仓 [feishu-bot-claude](https://github.com/957662/feishu-bot-claude) 同一套架构,把 Claude 换成了 Codex,**也兼容 Claude**(选 `--agent` 即可)。
 
-[![Platform](https://img.shields.io/badge/platform-macOS-blue)](https://github.com/957662/feishu-bot-codex-win)
+[![Platform](https://img.shields.io/badge/platform-Windows%2010%2F11-blue)](https://github.com/957662/feishu-bot-codex-windows)
 [![Agent](https://img.shields.io/badge/agent-codex%20%7C%20claude-purple)]()
 [![Python](https://img.shields.io/badge/python-3.11%2B-green)](https://www.python.org/)
 [![License](https://img.shields.io/badge/license-PolyForm%20Noncommercial%201.0.0-orange)](LICENSE)
@@ -52,7 +52,7 @@
 ## 🚀 快速开始
 
 ```bash
-git clone https://github.com/957662/feishu-bot-codex-win ~/project/feishu-bot-codex-win
+git clone https://github.com/957662/feishu-bot-codex-windows ~/project/feishu-bot-codex-win
 cd ~/project/feishu-bot-codex-win
 ./setup.sh
 # 可选: npm i -g @mermaid-js/mermaid-cli   # 把 ```mermaid 代码块自动渲染成图片插到飞书卡片里
