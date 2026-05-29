@@ -18,6 +18,11 @@ dependencies = [
 feishu-bot-codex = "feishu_bot_codex_win.cli:main"
 
 [project.optional-dependencies]
+# Windows-only runtime extras. Install with: pip install -e .[win]
+# Required: config/keychain.py uses win32cred (Windows Credential Manager).
+win = [
+    "pywin32 >= 306; platform_system == 'Windows'",
+]
 dev = [
     "pytest >= 8.0.0",
     "pytest-asyncio >= 0.23.0",
